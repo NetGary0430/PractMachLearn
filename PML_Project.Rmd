@@ -1,0 +1,60 @@
+---
+title: "An Exercise in Machine Learning"
+author: "Gary Netherton"
+date: "November 3, 2015"
+output: html_document
+---
+
+#Synopsis  
+
+Using monitoring devices such as Jawbone Up, Nike FuelBand, and Fitbit allows the user to collect a large amount of data about personal activity. These devices are used to regularly quantify how much of a particular activity done; however, they rarely quantify *how well* the activity was completed. In this project, the goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants who were asked to perform barbell lifts correctly and incorrectly in 5 different ways and predict the manner in which they did the exercise using the "classe" variable in the training dataset. 
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+## If you run into problems with cached output you can always clear the knitr cache by removing the folder named with 
+## a _cache suffix within your document’s directory
+```
+
+Read in the data: 
+
+```{r, echo=FALSE}
+training <- read.csv("pml-training.csv", stringsAsFactors = TRUE)
+testing <- read.csv("pml-testing.csv", stringsAsFactors = TRUE)
+str(training)
+
+```
+
+#Building Models
+When building a model, the goal is to accurately predict the "classe" output in the data set.  Class "A" corresponds to executing the exercise properly while the other classes, "B" through "E", correspond to common mistakes. We'll first look at the "classe" data to see what we're confronting.
+
+```{r, echo=FALSE}
+summary(training$classe)
+str(training$classe)
+library("caret")
+```
+
+Next we'll use the caret package on the training data, for starters, to try and create a prediction model for the training set. We will note that, per the authors of the original study, the following data is related to weight lifting:  
+
+user_name
+raw_timestamp_part_1
+raw_timestamp_part_2
+cvtd_timestamp
+new_window
+num_window
+roll_belt
+pitch_belt
+yaw_belt
+total_accel_belt
+
+
+```{r}
+set.seed(12358)
+system.time(modelFit <- train(classe~user_name + raw_timestamp_part_1 + raw_timestamp_part_2 + 
+                                  cvtd_timestamp + new_window + num_window + roll_belt +
+                                  pitch_belt + yaw_belt + total_accel_belt, data = training, method = "rpart"))
+modelFit$finalModel
+```
+
+#References  
+[see Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6]. 
+
