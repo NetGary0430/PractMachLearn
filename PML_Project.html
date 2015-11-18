@@ -175,59 +175,58 @@ img {
 </div>
 <div id="building-models" class="section level1">
 <h1>Building Models</h1>
-<p>When building a model, the goal is to accurately predict the “classe” output in the data set. Class “A” corresponds to executing the exercise properly while the other classes, “B” through “E”, correspond to common mistakes. We’ll first look at the “classe” data to see what we’re confronting.</p>
-<pre><code>##    Length     Class      Mode 
-##     19622 character character</code></pre>
-<pre><code>##  chr [1:19622] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; ...</code></pre>
-<p>Next we’ll use the caret package on the training data, for starters, to try and create a prediction model for the training set. We will note that, per the authors of the original study, the following data is related to weight lifting:</p>
-<p>user_name raw_timestamp_part_1 raw_timestamp_part_2 cvtd_timestamp new_window num_window roll_belt pitch_belt yaw_belt total_accel_belt</p>
+<p>When building a model, the goal is to accurately predict the “classe” output in the data set. Class “A” corresponds to executing the exercise properly while the other classes, “B” through “E”, correspond to common mistakes. We’ll first look at the “classe” data to see what we’re confronting. We’ll also go ahead and split the training data into a 90/10 grouping so that we can use 10% of the training set for cross-validation.</p>
+<pre><code>##    A    B    C    D    E 
+## 5580 3797 3422 3216 3607</code></pre>
+<pre><code>##  Factor w/ 5 levels &quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;D&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>Next we’ll use the gbm package to run our data and create our model. I did try running another modelling tecnique, but it took quite a long time on my work laptop (Intel i7 processor with 16 GB of RAM, though I doubt R accessed anything in that neighborhood).</p>
 <pre class="r"><code>set.seed(12358)
-system.time(modelFit &lt;- train(classe~user_name + raw_timestamp_part_1 + raw_timestamp_part_2 + 
-                                  cvtd_timestamp + new_window + num_window + roll_belt +
-                                  pitch_belt + yaw_belt + total_accel_belt, data = training, method = &quot;rpart&quot;))</code></pre>
+system.time(modFit &lt;- train(classe ~ user_name + pitch_arm + yaw_arm + roll_arm + roll_belt + pitch_belt + yaw_belt +
+                                gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z +
+                                magnet_belt_x + magnet_belt_y + magnet_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z +
+                                accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + magnet_arm_z +
+                                roll_dumbbell + pitch_dumbbell + yaw_dumbbell, method=&quot;gbm&quot;, data=trainingSub, verbose=FALSE))</code></pre>
 <pre><code>##    user  system elapsed 
-##    9.63    0.32    9.95</code></pre>
-<pre class="r"><code>modelFit$finalModel</code></pre>
-<pre><code>## n= 19622 
+## 1284.57    1.93 1286.59</code></pre>
+<pre class="r"><code>print(modFit)</code></pre>
+<pre><code>## Stochastic Gradient Boosting 
 ## 
-## node), split, n, loss, yval, (yprob)
-##       * denotes terminal node
+## 17662 samples
+##   159 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
 ## 
-##     1) root 19622 14042 A (0.28 0.19 0.17 0.16 0.18)  
-##       2) roll_belt&lt; 130.5 17977 12411 A (0.31 0.21 0.19 0.18 0.11)  
-##         4) cvtd_timestamp30/11/2011 17:10&gt;=0.5 869     0 A (1 0 0 0 0) *
-##         5) cvtd_timestamp30/11/2011 17:10&lt; 0.5 17108 12411 A (0.27 0.22 0.2 0.19 0.12)  
-##          10) raw_timestamp_part_1&lt; 1.32249e+09 855     0 A (1 0 0 0 0) *
-##          11) raw_timestamp_part_1&gt;=1.32249e+09 16253 12411 A (0.24 0.23 0.21 0.2 0.12)  
-##            22) cvtd_timestamp02/12/2011 13:33&gt;=0.5 1307   333 A (0.75 0.25 0 0 0) *
-##            23) cvtd_timestamp02/12/2011 13:33&lt; 0.5 14946 11482 B (0.19 0.23 0.23 0.22 0.13)  
-##              46) raw_timestamp_part_1&lt; 1.32249e+09 604    12 B (0.017 0.98 0.0033 0 0) *
-##              47) raw_timestamp_part_1&gt;=1.32249e+09 14342 10922 C (0.2 0.2 0.24 0.22 0.14)  
-##                94) cvtd_timestamp02/12/2011 14:57&gt;=0.5 1380   664 B (0.48 0.52 0 0 0)  
-##                 188) raw_timestamp_part_1&lt; 1.322838e+09 664     0 A (1 0 0 0 0) *
-##                 189) raw_timestamp_part_1&gt;=1.322838e+09 716     0 B (0 1 0 0 0) *
-##                95) cvtd_timestamp02/12/2011 14:57&lt; 0.5 12962  9542 C (0.17 0.17 0.26 0.25 0.15)  
-##                 190) num_window&lt; 68.5 1412   719 A (0.49 0 0 0.1 0.41)  
-##                   380) cvtd_timestamp05/12/2011 11:25&lt; 0.5 758    65 A (0.91 0 0 0 0.086) *
-##                   381) cvtd_timestamp05/12/2011 11:25&gt;=0.5 654   146 E (0 0 0 0.22 0.78) *
-##                 191) num_window&gt;=68.5 11550  8130 C (0.13 0.19 0.3 0.27 0.12)  
-##                   382) cvtd_timestamp05/12/2011 11:24&gt;=0.5 1497   807 B (0.43 0.46 0.11 0 0)  
-##                     764) raw_timestamp_part_1&lt; 1.323084e+09 645     1 A (1 0.0016 0 0 0) *
-##                     765) raw_timestamp_part_1&gt;=1.323084e+09 852   163 B (0 0.81 0.19 0 0) *
-##                   383) cvtd_timestamp05/12/2011 11:24&lt; 0.5 10053  6796 C (0.085 0.15 0.32 0.31 0.14)  
-##                     766) num_window&lt; 88.5 441     0 B (0 1 0 0 0) *
-##                     767) num_window&gt;=88.5 9612  6355 C (0.089 0.11 0.34 0.32 0.15)  
-##                      1534) cvtd_timestamp30/11/2011 17:12&lt; 0.5 8522  5274 C (0.1 0.12 0.38 0.3 0.099)  
-##                        3068) cvtd_timestamp28/11/2011 14:15&lt; 0.5 7824  4576 C (0.11 0.13 0.42 0.3 0.044)  
-##                          6136) raw_timestamp_part_1&lt; 1.322833e+09 3675  1802 C (0.13 0.25 0.51 0.1 0) *
-##                          6137) raw_timestamp_part_1&gt;=1.322833e+09 4149  2183 D (0.09 0.022 0.33 0.47 0.083)  
-##                           12274) cvtd_timestamp05/12/2011 14:23&gt;=0.5 637   145 C (0.13 0.1 0.77 0 0) *
-##                           12275) cvtd_timestamp05/12/2011 14:23&lt; 0.5 3512  1546 D (0.083 0.0083 0.25 0.56 0.098) *
-##                        3069) cvtd_timestamp28/11/2011 14:15&gt;=0.5 698   197 E (0 0 0 0.28 0.72) *
-##                      1535) cvtd_timestamp30/11/2011 17:12&gt;=0.5 1090   531 E (0 0 0.0083 0.48 0.51)  
-##                        3070) raw_timestamp_part_1&lt; 1.322673e+09 527     9 D (0 0 0.017 0.98 0) *
-##                        3071) raw_timestamp_part_1&gt;=1.322673e+09 563     4 E (0 0 0 0.0071 0.99) *
-##       3) roll_belt&gt;=130.5 1645    14 E (0.0085 0 0 0 0.99) *</code></pre>
+## No pre-processing
+## Resampling: Bootstrapped (25 reps) 
+## Summary of sample sizes: 17662, 17662, 17662, 17662, 17662, 17662, ... 
+## Resampling results across tuning parameters:
+## 
+##   interaction.depth  n.trees  Accuracy   Kappa      Accuracy SD
+##   1                   50      0.6546278  0.5600261  0.005127637
+##   1                  100      0.7067132  0.6278382  0.004846309
+##   1                  150      0.7425084  0.6738890  0.005500581
+##   2                   50      0.7645021  0.7018199  0.006308789
+##   2                  100      0.8341649  0.7901877  0.006272755
+##   2                  150      0.8692741  0.8346249  0.005269314
+##   3                   50      0.8295259  0.7843026  0.005955900
+##   3                  100      0.8876531  0.8578759  0.004941692
+##   3                  150      0.9146724  0.8921028  0.004202150
+##   Kappa SD   
+##   0.006357165
+##   0.006136397
+##   0.007011768
+##   0.007849619
+##   0.007908474
+##   0.006658585
+##   0.007507418
+##   0.006262103
+##   0.005338907
+## 
+## Tuning parameter 'shrinkage' was held constant at a value of 0.1
+## 
+## Tuning parameter 'n.minobsinnode' was held constant at a value of 10
+## Accuracy was used to select the optimal model using  the largest value.
+## The final values used for the model were n.trees = 150,
+##  interaction.depth = 3, shrinkage = 0.1 and n.minobsinnode = 10.</code></pre>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>

@@ -25,35 +25,37 @@ str(training)
 ```
 
 #Building Models
-When building a model, the goal is to accurately predict the "classe" output in the data set.  Class "A" corresponds to executing the exercise properly while the other classes, "B" through "E", correspond to common mistakes. We'll first look at the "classe" data to see what we're confronting.
+When building a model, the goal is to accurately predict the "classe" output in the data set.  Class "A" corresponds to executing the exercise properly while the other classes, "B" through "E", correspond to common mistakes. We'll first look at the "classe" data to see what we're confronting.  We'll also go ahead and split the training data into a 90/10 grouping so that we can use 10% of the training set for cross-validation.  
+
 
 ```{r, echo=FALSE}
 summary(training$classe)
 str(training$classe)
 library("caret")
+library("lattice")
+library("ggplot2")
+inTrain <- createDataPartition(y=training$classe, p=0.9, list=FALSE)
+trainingSub <- training[inTrain,]
+testingSub <- training[-inTrain,]
+
 ```
 
-Next we'll use the caret package on the training data, for starters, to try and create a prediction model for the training set. We will note that, per the authors of the original study, the following data is related to weight lifting:  
-
-user_name
-raw_timestamp_part_1
-raw_timestamp_part_2
-cvtd_timestamp
-new_window
-num_window
-roll_belt
-pitch_belt
-yaw_belt
-total_accel_belt
+Next we'll use the gbm package to run our data and create our model.  I did try running another modelling tecnique, but it took quite a long time on my work laptop (Intel i7 processor with 16 GB of RAM, though I doubt R accessed anything in that neighborhood).
 
 
 ```{r}
 set.seed(12358)
-system.time(modelFit <- train(classe~user_name + raw_timestamp_part_1 + raw_timestamp_part_2 + 
-                                  cvtd_timestamp + new_window + num_window + roll_belt +
-                                  pitch_belt + yaw_belt + total_accel_belt, data = training, method = "rpart"))
-modelFit$finalModel
+system.time(modFit <- train(classe ~ user_name + pitch_arm + yaw_arm + roll_arm + roll_belt + pitch_belt + yaw_belt +
+                                gyros_belt_x + gyros_belt_y + gyros_belt_z + accel_belt_x + accel_belt_y + accel_belt_z +
+                                magnet_belt_x + magnet_belt_y + magnet_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z +
+                                accel_arm_x + accel_arm_y + accel_arm_z + magnet_arm_x + magnet_arm_y + magnet_arm_z +
+                                roll_dumbbell + pitch_dumbbell + yaw_dumbbell, method="gbm", data=trainingSub, verbose=FALSE))
+print(modFit)
 ```
+
+
+
+
 
 #References  
 [see Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6]. 
