@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Practmachlearn by NetGary0430</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Practmachlearn</h1>
+      <h2 class="project-tagline">Coursera Practical Machine Learning</h2>
+      <a href="https://github.com/NetGary0430/PractMachLearn" class="btn">View on GitHub</a>
+      <a href="https://github.com/NetGary0430/PractMachLearn/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/NetGary0430/PractMachLearn/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="synopsis" class="anchor" href="#synopsis" aria-hidden="true"><span class="octicon octicon-link"></span></a>Synopsis</h1>
+
+<p>Using monitoring devices such as Jawbone Up, Nike FuelBand, and Fitbit allows the user to collect a large amount of data about personal activity. These devices are used to regularly quantify how much of a particular activity done; however, they rarely quantify <em>how well</em> the activity was completed. In this project, the goal is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants who were asked to perform barbell lifts correctly and incorrectly in 5 different ways and predict the manner in which they did the exercise using the "classe" variable in the training dataset. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-e">knitr</span><span class="pl-k">::</span><span class="pl-smi">opts_chunk</span><span class="pl-k">$</span>set(<span class="pl-v">cache</span><span class="pl-k">=</span><span class="pl-c1">TRUE</span>)
+<span class="pl-c">## If you run into problems with cached output you can always clear the knitr cache by removing the folder named with </span>
+<span class="pl-c">## a _cache suffix within your document’s directory</span>
+library(<span class="pl-s"><span class="pl-pds">"</span>knitr<span class="pl-pds">"</span></span>)</pre></div>
+
+<p>Read in the data: </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">training</span> <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s"><span class="pl-pds">"</span>pml-training.csv<span class="pl-pds">"</span></span>, <span class="pl-v">stringsAsFactors</span> <span class="pl-k">=</span> <span class="pl-c1">TRUE</span>)
+<span class="pl-smi">testing</span> <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s"><span class="pl-pds">"</span>pml-testing.csv<span class="pl-pds">"</span></span>, <span class="pl-v">stringsAsFactors</span> <span class="pl-k">=</span> <span class="pl-c1">TRUE</span>)
+str(<span class="pl-smi">training</span>)
+</pre></div>
+
+<h1>
+<a id="building-models" class="anchor" href="#building-models" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building Models</h1>
+
+<p>When building a model, the goal is to accurately predict the "classe" output in the data set.  Class "A" corresponds to executing the exercise properly while the other classes, "B" through "E", correspond to common mistakes. We'll first look at the "classe" data to see what we're confronting.  We'll also go ahead and split the training data into a 90/10 grouping so that we can use 10% of the training set for cross-validation.  </p>
+
+<div class="highlight highlight-source-r"><pre>summary(<span class="pl-smi">training</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)
+str(<span class="pl-smi">training</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>caret<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>lattice<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>ggplot2<span class="pl-pds">"</span></span>)
+<span class="pl-smi">inTrain</span> <span class="pl-k">&lt;-</span> createDataPartition(<span class="pl-v">y</span><span class="pl-k">=</span><span class="pl-smi">training</span><span class="pl-k">$</span><span class="pl-smi">classe</span>, <span class="pl-v">p</span><span class="pl-k">=</span><span class="pl-c1">0.9</span>, <span class="pl-v">list</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)
+<span class="pl-smi">trainingSub</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[<span class="pl-smi">inTrain</span>,]
+<span class="pl-smi">testingSub</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[<span class="pl-k">-</span><span class="pl-smi">inTrain</span>,]
+</pre></div>
+
+<p>Next we'll use the gbm package to run our data and create our model.  I did try running another modelling tecnique, but it took quite a long time on my work laptop (Intel i7 processor with 16 GB of RAM, though I doubt R accessed anything in that neighborhood).</p>
+
+<div class="highlight highlight-source-r"><pre>set.seed(<span class="pl-c1">12358</span>)
+system.time(<span class="pl-smi">modFit</span> <span class="pl-k">&lt;-</span> train(<span class="pl-smi">classe</span> <span class="pl-k">~</span> <span class="pl-smi">user_name</span> <span class="pl-k">+</span> <span class="pl-smi">pitch_arm</span> <span class="pl-k">+</span> <span class="pl-smi">yaw_arm</span> <span class="pl-k">+</span> <span class="pl-smi">roll_arm</span> <span class="pl-k">+</span> <span class="pl-smi">roll_belt</span> <span class="pl-k">+</span> <span class="pl-smi">pitch_belt</span> <span class="pl-k">+</span> <span class="pl-smi">yaw_belt</span> <span class="pl-k">+</span>
+                                <span class="pl-smi">gyros_belt_x</span> <span class="pl-k">+</span> <span class="pl-smi">gyros_belt_y</span> <span class="pl-k">+</span> <span class="pl-smi">gyros_belt_z</span> <span class="pl-k">+</span> <span class="pl-smi">accel_belt_x</span> <span class="pl-k">+</span> <span class="pl-smi">accel_belt_y</span> <span class="pl-k">+</span> <span class="pl-smi">accel_belt_z</span> <span class="pl-k">+</span>
+                                <span class="pl-smi">magnet_belt_x</span> <span class="pl-k">+</span> <span class="pl-smi">magnet_belt_y</span> <span class="pl-k">+</span> <span class="pl-smi">magnet_belt_z</span> <span class="pl-k">+</span> <span class="pl-smi">gyros_arm_x</span> <span class="pl-k">+</span> <span class="pl-smi">gyros_arm_y</span> <span class="pl-k">+</span> <span class="pl-smi">gyros_arm_z</span> <span class="pl-k">+</span>
+                                <span class="pl-smi">accel_arm_x</span> <span class="pl-k">+</span> <span class="pl-smi">accel_arm_y</span> <span class="pl-k">+</span> <span class="pl-smi">accel_arm_z</span> <span class="pl-k">+</span> <span class="pl-smi">magnet_arm_x</span> <span class="pl-k">+</span> <span class="pl-smi">magnet_arm_y</span> <span class="pl-k">+</span> <span class="pl-smi">magnet_arm_z</span> <span class="pl-k">+</span>
+                                <span class="pl-smi">roll_dumbbell</span> <span class="pl-k">+</span> <span class="pl-smi">pitch_dumbbell</span> <span class="pl-k">+</span> <span class="pl-smi">yaw_dumbbell</span>, <span class="pl-v">method</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>gbm<span class="pl-pds">"</span></span>, <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">trainingSub</span>, <span class="pl-v">verbose</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>))
+print(<span class="pl-smi">modFit</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">predictTr</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">modFit</span>,<span class="pl-smi">trainingSub</span>)
+table(<span class="pl-smi">predictTr</span>, <span class="pl-smi">trainingSub</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)
+summary(<span class="pl-smi">modFit</span>,<span class="pl-v">n.trees</span><span class="pl-k">=</span><span class="pl-c1">150</span>)
+</pre></div>
+
+<p>The model correctly classifies over 93% of the observations in the training sub-sample using 150 trees. The <em>roll_belt</em> and <em>yaw_belt</em> features appear to be the most influential.  </p>
+
+<p>We can look at a plot of these top two features colored by outcome.</p>
+
+<p>They are not the best predictors on their own, but the plot shows groupings. This confirms that a boosting algorithm was a good choice since there is a large set of relatively weak predictors. This second plot further demonstrates the improved performance gained by using boosting iterations.</p>
+
+<div class="highlight highlight-source-r"><pre>qplot(<span class="pl-smi">roll_belt</span>, <span class="pl-smi">yaw_belt</span>,<span class="pl-v">colour</span><span class="pl-k">=</span><span class="pl-smi">classe</span>,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">trainingSub</span>)
+ggplot(<span class="pl-smi">modFit</span>)</pre></div>
+
+<p>Now, I have to check the performance on the 10 percent subsample to get an estimate of the algorithm’s out-of-sample performance.</p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">predictTe</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">modFit</span>,<span class="pl-smi">testingSub</span>)
+table(<span class="pl-smi">predictTe</span>, <span class="pl-smi">testingSub</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)</pre></div>
+
+<p>The algorithm performs very close on the 10 percent, performing slightly worse (by about 0.2%) on this subset than it did on the full training set, correctly classifying 93.4% of the observations.  </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-c">#pml.testing &lt;- read.csv("~/R/Coursera /Machine Learning/Project/pml-testing.csv")</span>
+<span class="pl-c">#answers &lt;- as.character(predict(modFit, pml.testing))</span>
+<span class="pl-c">#pml_write_files = function(x){</span>
+<span class="pl-c">#  n = length(x)</span>
+<span class="pl-c">#  for(i in 1:n){</span>
+<span class="pl-c">#    filename = paste0("problem_id_",i,".txt")</span>
+<span class="pl-c">#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)</span>
+<span class="pl-c">#  }</span>
+<span class="pl-c">#}</span>
+<span class="pl-c">#pml_write_files(answers)</span></pre></div>
+
+<h1>
+<a id="references" class="anchor" href="#references" aria-hidden="true"><span class="octicon octicon-link"></span></a>References</h1>
+
+<p>[see Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6]. </p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/NetGary0430/PractMachLearn">Practmachlearn</a> is maintained by <a href="https://github.com/NetGary0430">NetGary0430</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
