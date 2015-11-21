@@ -85,18 +85,18 @@ table(predictTe, testingSub$classe)
 
 The algorithm performs very close on the 10 percent, performing slightly worse (by about 0.2%) on this subset than it did on the full training set, correctly classifying 93.4% of the observations.  
 
+The following code is for submission for grading - taken from the Coursera website as offered by Dr. Leek.  
 
 ```{r}
-#pml.testing <- read.csv("~/R/Coursera /Machine Learning/Project/pml-testing.csv")
-#answers <- as.character(predict(modFit, pml.testing))
-#pml_write_files = function(x){
-#  n = length(x)
-#  for(i in 1:n){
-#    filename = paste0("problem_id_",i,".txt")
-#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-#  }
-#}
-#pml_write_files(answers)
+answers <- as.character(predict(modFit, testing))
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(answers)
 ```
 
 

@@ -288,17 +288,17 @@ table(predictTe, testingSub$classe)</code></pre>
 ##         C   4  16 315  14   3
 ##         D  14   2   5 288   1
 ##         E   4   1   2   5 346</code></pre>
-<p>The algorithm performs very close on the 10 percent, performing a hair worse (by about 0.2%) on this subset than it did on the full training set, correctly classifying 93.4% of the observations.</p>
-<pre class="r"><code>#pml.testing &lt;- read.csv(&quot;~/R/Coursera /Machine Learning/Project/pml-testing.csv&quot;)
-#answers &lt;- as.character(predict(modFit, pml.testing))
-#pml_write_files = function(x){
-#  n = length(x)
-#  for(i in 1:n){
-#    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
-#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-#  }
-#}
-#pml_write_files(answers)</code></pre>
+<p>The algorithm performs very close on the 10 percent, performing slightly worse (by about 0.2%) on this subset than it did on the full training set, correctly classifying 93.4% of the observations.</p>
+<p>The following code is for submission for grading - taken from the Coursera website as offered by Dr. Leek.</p>
+<pre class="r"><code>answers &lt;- as.character(predict(modFit, testing))
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(answers)</code></pre>
 </div>
 <div id="references" class="section level1">
 <h1>References</h1>
