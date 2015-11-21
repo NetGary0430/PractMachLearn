@@ -55,6 +55,50 @@ print(modFit)
 
 
 
+```{r}
+predictTr <- predict(modFit,trainingSub)
+table(predictTr, trainingSub$classe)
+summary(modFit,n.trees=150)
+
+```
+
+
+The model correctly classifies over 93% of the observations in the training sub-sample using 150 trees. The *roll_belt* and *yaw_belt* features appear to be the most influential.  
+
+We can look at a plot of these top two features colored by outcome.
+
+
+They are not the best predictors on their own, but the plot shows groupings. This confirms that a boosting algorithm was a good choice since there is a large set of relatively weak predictors. This second plot further demonstrates the improved performance gained by using boosting iterations.
+
+
+```{r}
+qplot(roll_belt, yaw_belt,colour=classe,data=trainingSub)
+ggplot(modFit)
+```
+
+Now, I have to check the performance on the 10 percent subsample to get an estimate of the algorithm’s out-of-sample performance.
+
+```{r}
+predictTe <- predict(modFit,testingSub)
+table(predictTe, testingSub$classe)
+```
+
+The algorithm performs very close on the 10 percent, performing slightly worse (by about 0.2%) on this subset than it did on the full training set, correctly classifying 93.4% of the observations.  
+
+
+```{r}
+#pml.testing <- read.csv("~/R/Coursera /Machine Learning/Project/pml-testing.csv")
+#answers <- as.character(predict(modFit, pml.testing))
+#pml_write_files = function(x){
+#  n = length(x)
+#  for(i in 1:n){
+#    filename = paste0("problem_id_",i,".txt")
+#    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+#  }
+#}
+#pml_write_files(answers)
+```
+
 
 
 #References  
